@@ -1,5 +1,8 @@
 # koa-app-party
 
+[![Build Status](https://travis-ci.org/RobinQu/koa-app-party.svg)](https://travis-ci.org/RobinQu/koa-app-party)
+
+
 Enjoy the dark art of sub-app in koa
 
 ## Usage
@@ -45,4 +48,4 @@ var Container = ap.Container.design('mycontaier', function(ns) {
 });
 ```
 
-* a new context is created at the 
+* a new context is created at the

@@ -69,48 +69,76 @@ describe 'App', ->
         )
       .end(done)
 
-  describe 'inject', ->
-    it 'should inject on listen', (done)->
-      app = App.design('antman').create()
-      sinon.stub(app, 'inject', Promise.method((ns)->
-        expect(ns).to.be.ok
-        ns.set('inject', 'awesome')
-        ))
-      app.use(->
-        this.body = {result: this.ns.get('inject')}
-        yield return
-        )
-      request(app.listen())
-      .get('/')
-      .type('json')
-      .expect((res)->
-        expect(res.body.result).to.equal('awesome');
-        )
-      .end(done)
+  describe 'listen', ->
 
-    it 'should emit inject event', (done)->
-      app = App.design('antman').create()
-      injectCb = sinon.spy()
-      app.on('inject', injectCb)
-      app.listen(->
-        expect(injectCb.calledOnce).to.be.true
-        done()
-        )
-      app.on('error', done)
+    it 'should assign port and call listening callback', (done)->
+      app = App.design('xmen').create()
+      cb = sinon.spy()
+      s1 = app.listen(8080, cb)
+      expect(s1 instanceof require('http').Server).to.be.true
+      setTimeout(->
+          expect(cb.calledOnce).to.be.ok
+          s2 = cb.firstCall.thisValue
+          expect(s2).to.be.ok
+          expect(s2 instanceof require('http').Server).to.be.true
+          s1.close(done)
+        , 100)
 
-    it 'should throw error if something goes wrong during injection', (done)->
-      app = App.design('ironman').create()
-      errorCb = sinon.spy()
-      app.on('error', (e)->
-        expect(e).to.be.ok
-        ctx = app.ns().fromException(e)
-        expect(ctx).to.be.ok
-        expect(ctx.name).to.equal('ironman')
-        done()
-        )
-      sinon.stub(app, 'inject', Promise.method((ns)->
-        throw new Error('boom')
-        ))
-      app.listen(->
-        done(new Error('should not run here'))
-        )
+
+    describe 'accept server', ->
+      it 'should call acceptServer with http.Server', (done)->
+        app = App.design('wingman').create()
+        stub = sinon.stub(app, 'acceptServer', Promise.method((srv)->
+          true
+          ))
+        app.listen(->
+          expect(stub.calledOnce).to.be.ok
+          expect(stub.firstCall.args[0]).to.be.instanceof(require('http').Server)
+          done()
+          )
+
+    describe 'inject', ->
+      it 'should inject on listen', (done)->
+        app = App.design('antman').create()
+        sinon.stub(app, 'inject', Promise.method((ns)->
+          expect(ns).to.be.ok
+          ns.set('inject', 'awesome')
+          ))
+        app.use(->
+          this.body = {result: this.ns.get('inject')}
+          yield return
+          )
+        request(app.listen())
+        .get('/')
+        .type('json')
+        .expect((res)->
+          expect(res.body.result).to.equal('awesome');
+          )
+        .end(done)
+
+      it 'should emit inject event', (done)->
+        app = App.design('antman').create()
+        injectCb = sinon.spy()
+        app.on('inject', injectCb)
+        app.listen(->
+          expect(injectCb.calledOnce).to.be.true
+          done()
+          )
+        app.on('error', done)
+
+      it 'should throw error if something goes wrong during injection', (done)->
+        app = App.design('ironman').create()
+        errorCb = sinon.spy()
+        app.on('error', (e)->
+          expect(e).to.be.ok
+          ctx = app.ns().fromException(e)
+          expect(ctx).to.be.ok
+          expect(ctx.name).to.equal('ironman')
+          done()
+          )
+        sinon.stub(app, 'inject', Promise.method((ns)->
+          throw new Error('boom')
+          ))
+        app.listen(->
+          done(new Error('should not run here'))
+          )

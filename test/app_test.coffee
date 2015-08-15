@@ -9,6 +9,11 @@ describe 'App', ->
   App = ap.App
 
   describe 'design', ->
+    it 'should throw if no name is given', ->
+      expect(->
+        App.design(->)
+        ).to.throw('should provide name')
+
     it 'should delcare members on app', ->
       app = App.design('superman').create()
       expect((typeof app.ns) is 'function').to.be.true

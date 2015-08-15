@@ -46,6 +46,7 @@ describe 'Container', ->
         ns.set('foo', 'bar')
         this.use(->
           this.body =
+            prefix: this.ns.get('prefix')
             foo: this.ns.get('foo'),
             hello: this.ns.get('hello')
           yield return
@@ -63,9 +64,124 @@ describe 'Container', ->
         expect(res.body).to.deep.equal({
           foo: 'bar',
           hello: 'world'
+          prefix: '/somewhere'
           })
         )
       .end(done)
+
+    it 'should fix redirects', (done)->
+      app1 = ap.extend(->
+        this.use(->
+          if this.path is '/go'
+            this.redirect('/newplace')
+          yield return
+          )
+        ).create()
+      root = ap.Container.extend(->
+        this.mount('/app1', app1)
+        ).create()
+      request(root.listen())
+      .get('/app1/go')
+      .expect(302)
+      .expect('location', '/app1/newplace')
+      .end(done)
+
+    describe 'nested', ->
+      app1 = ap.Container.design('app1', (ns)->
+        ns.set('app1', 'abcd')
+        ns.set('common', 'a')
+        this.mount('/sub1', makeApp('sub1'))
+        ).create()
+      app2 = ap.Container.design('app2', (ns)->
+        ns.set('app2', 'efgh')
+        ns.set('common', 'b')
+        this.mount('/sub2', makeApp('sub2'))
+        this.use(->
+          this.body = this.ns.get('common')
+          yield return
+          )
+        ).create()
+      app3 = ap.Container.design('app3', (ns)->
+        ns.set('app3', 'ijkl')
+        ns.set('override1', '2')
+        ns.set('common', 'c')
+        this.compose(
+          '/go': '/sub3',
+          '/sub3': ap.design('sub3', (ns)->
+            ns.set('sub3', 'sub3')
+            ns.set('override2', '3')
+            this.use(->
+              if this.path is '/place1'
+                this.redirect('/place2')
+              else
+                this.body =
+                  common: this.ns.get('common')
+                  root: this.ns.get('root')
+                  sub3: this.ns.get('sub3')
+                  app3: this.ns.get('app3')
+                  override1: this.ns.get('override1')
+                  override2: this.ns.get('override2')
+              yield return
+              )
+            )
+        )
+        this.use(->
+          this.body = this.ns.get('common')
+          yield return
+          )
+        ).create()
+      root = ap.Container.design('root', (ns)->
+        ns.set('override1', '1')
+        ns.set('override2', '2')
+        ns.set('root', 'haha')
+        this.mount('/app1', app1)
+        this.mount('/app2', app2)
+        this.mount('/app3', app3)
+        ).create()
+
+
+      it 'should support nested mount', (done)->
+        request(root.listen())
+        .get('/app1/sub1')
+        .expect(200)
+        .expect('sub1')
+        .end(done)
+
+      it 'should concat prefixes in redirection', (done)->
+        request(root.listen())
+        .get('/app3/sub3/place1')
+        .expect(302)
+        .expect('location', '/app3/sub3/place2')
+        .end(done)
+
+      it 'should inheirt from all ascendants', (done)->
+        request(root.listen())
+        .get('/app3/sub3/value')
+        .type('json')
+        .expect(200)
+        .expect((res)->
+          v = res.body
+          expect(v.root).to.equal('haha')
+          expect(v.sub3).to.equal('sub3')
+          expect(v.app3).to.equal('ijkl')
+          expect(v.override1).to.equal('2')
+          expect(v.override2).to.equal('3')
+          expect(v.common).to.equal('c')
+          )
+        .end(done)
+
+      it 'should be isolated namespace', (done)->
+        request(root.listen())
+        .get('/app2/abc')
+        .expect('b')
+        .end((e)->
+          done(e) if e
+          request(root.listen())
+          .get('/app3/abc')
+          .expect('c')
+          .end(done)
+          )
+
 
   describe 'design', ->
     it 'should assign redirect route', (done)->
@@ -82,6 +198,7 @@ describe 'Container', ->
       request(app.listen())
       .get('/')
       .expect(302)
+      .expect('location', '/foo')
       .end(done)
 
     it 'should mount app at given path', (done)->
@@ -95,4 +212,5 @@ describe 'Container', ->
       request(root.listen())
       .get('/')
       .expect(302)
+      .expect('location', '/app1')
       .end(done)

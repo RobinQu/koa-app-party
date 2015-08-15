@@ -105,10 +105,11 @@ describe 'App', ->
     describe 'inject', ->
       it 'should inject on listen', (done)->
         app = App.design('antman').create()
-        sinon.stub(app, 'inject', Promise.method((ns)->
+        sinon.stub(app, 'inject', (ns, callback)->
           expect(ns).to.be.ok
           ns.set('inject', 'awesome')
-          ))
+          callback() if callback
+          )
         app.use(->
           this.body = {result: this.ns.get('inject')}
           yield return
@@ -123,7 +124,7 @@ describe 'App', ->
 
       it 'should emit inject event', (done)->
         app = App.design('antman').create()
-        injectCb = sinon.spy()
+        injectCb = sinon.stub().returns(Promise.resolve(true))
         app.on('inject', injectCb)
         app.listen(->
           expect(injectCb.calledOnce).to.be.true
@@ -141,9 +142,9 @@ describe 'App', ->
           expect(ctx.name).to.equal('ironman')
           done()
           )
-        sinon.stub(app, 'inject', Promise.method((ns)->
+        sinon.stub(app, 'inject', (ns, callback)->
           throw new Error('boom')
-          ))
+          )
         app.listen(->
           done(new Error('should not run here'))
           )

@@ -182,6 +182,33 @@ describe 'Container', ->
           .end(done)
           )
 
+  describe 'acceptServer', ->
+
+    it 'should call acceptServer of subapps', (done)->
+      app1 = makeApp('app1')
+      app1.acceptServer = sinon.stub()
+      app1.acceptServer.callsArg(1)
+      app2 = makeApp('app2')
+      app2.acceptServer = sinon.stub()
+      app2.acceptServer.callsArg(1)
+      root = ap.Container.design('root', ->
+        this.compose(
+          '/': '/app1'
+          '/app1': app1
+          '/app2': app2
+        )
+        ).create()
+      expect(root.subapps).to.be.ok
+      expect(root.subapps.length).to.equal(2)
+      root.listen(->
+        expect(app1.acceptServer.firstCall.args[0]).to.equal(this)
+        expect(app1.acceptServer.calledOnce).to.be.true
+        expect(app2.acceptServer.firstCall.args[0]).to.equal(this)
+        expect(app2.acceptServer.calledOnce).to.be.true
+        this.close(done)
+        )
+
+
 
   describe 'design', ->
     it 'should assign redirect route', (done)->

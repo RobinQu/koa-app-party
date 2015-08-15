@@ -136,11 +136,16 @@ Subclass of `App`. Following class methods work just like the one on `App`:
     '/': '/app1'
   }
   ```
+
 ###  Subclassing notes
 
 * `Container.prototype.acceptServer` is pre-defined. You should call this method if you are writing an override version of `acceptServer` on a container.
 * Always run `extend` or `design` to create subclasses.
 
+
+## Contributor
+
+RobinQu
 
 ## License
 

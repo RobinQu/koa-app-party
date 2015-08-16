@@ -62,3 +62,31 @@ describe 'Base', ->
       expect(BetterApp.prop1).not.to.be.ok
       expect(BetterApp.method2).to.be.ok
       expect(BestApp.method2).to.equal(BetterApp.method2)
+
+    it 'should extend prototype if props are passed', ->
+      app = Base.extend(
+        foo: ->
+        bar: ->
+      ).create()
+      expect(typeof app.foo).to.equal('function')
+      expect(typeof app.bar).to.equal('function')
+
+    it 'should override super methods', ->
+      App = Base.extend(
+        foo: -> 'foo'
+      )
+      App2 = App.extend(
+        foo: -> 'bar'
+      )
+      app = App2.create()
+      expect(app.foo()).to.equal('bar')
+
+    it 'should have a reference to super method', ->
+        App = Base.extend(
+          foo: -> 'foo'
+        )
+        App2 = App.extend(
+          foo: -> this.super() + 'bar'
+        )
+        app = App2.create()
+        expect(app.foo()).to.equal('foobar')

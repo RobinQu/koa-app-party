@@ -87,6 +87,11 @@ var ap = require('koa-app-party');
 
   Create a subclass from current App. A `configurator` function will be invoked during constructor call with app instance as current context and other arguments passed to the constructor.
 
+* App.extend(props)
+
+  A plain object can be passed to extend the prototype of subclass. `props.init` will be called during constructor call.
+  And a reference to super method (if any), is available as `this.super`.
+
 * App.design(name, designer)
 
   Like `App.extend`, but `designer` will be run with the namespace instance as a single argument. `designer` is intended to modify the namespace during the constructor call.

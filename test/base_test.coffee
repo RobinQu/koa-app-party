@@ -19,18 +19,22 @@ describe 'Base', ->
       expect(stub.firstCall.args[0]).to.deep.equal(foo: 'bar')
       stub.restore()
 
-    it 'should run callback with options', ->
+    it 'should run callback with options', (done)->
       cb = sinon.spy()
       app = Base.run(foo: 'bar', cb)
       setTimeout ->
           expect(cb.calledOnce).to.be.true
+          srv = cb.firstCall.thisValue
+          srv.close(done)
         , 100
 
-    it 'should run callback without options', ->
+    it 'should run callback without options', (done)->
       cb = sinon.spy()
       app = Base.run(cb)
       setTimeout ->
           expect(cb.calledOnce).to.be.true
+          srv = cb.firstCall.thisValue
+          srv.close(done)
         , 100
 
 

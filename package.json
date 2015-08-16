@@ -4,7 +4,7 @@
   "description": "koa app party",
   "main": "lib/index.js",
   "scripts": {
-    "test": "NODE_ENV=test mocha --full-trace --harmony --compilers coffee:coffee-script/register test/*_test.coffee",
+    "test": "NODE_ENV=test mocha --full-trace --harmony --compilers coffee:coffee-script/register --require ./test/test_helper.coffee test/*_test.coffee",
     "lint": "eslint -c ./.eslintrc lib"
   },
   "author": "Robin Qu",

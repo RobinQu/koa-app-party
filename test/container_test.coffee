@@ -2,7 +2,7 @@ expect = require('chai').expect
 sinon = require('sinon')
 request = require('supertest')
 ap = require('..')
-
+Promise = require('bluebird')
 
 makeApp = (name)->
   ap.App.extend(->
@@ -182,15 +182,42 @@ describe 'Container', ->
           .end(done)
           )
 
-  describe 'acceptServer', ->
+  describe 'bootstrap', ->
+
+    it 'should call bootstrap of subapps', (done)->
+
+      app1 = makeApp('app1')
+      bs1 = sinon.spy(app1, 'bootstrap')
+      app2 = makeApp('app2')
+      bs2 = sinon.spy(app2, 'bootstrap')
+
+      root = ap.Container.design('root', ->
+        this.compose(
+          '/': '/app1'
+          '/app1': app1
+          '/app2': app2
+        )
+        ).create()
+
+      bs3 = sinon.spy(root, 'bootstrap')
+      expect(root.subapps).to.be.ok
+      expect(root.subapps.length).to.equal(2)
+      root.listen(->
+        expect(bs1.callCount).to.equal(1)
+        expect(bs2.callCount).to.equal(1)
+        expect(bs3.callCount).to.equal(1)
+        expect(bs3.calledBefore(bs2)).to.be.true
+        expect(bs3.calledBefore(bs1)).to.be.true
+        this.close(done)
+        )
 
     it 'should call acceptServer of subapps', (done)->
       app1 = makeApp('app1')
       app1.acceptServer = sinon.stub()
-      app1.acceptServer.callsArg(1)
+      app1.acceptServer.returns(Promise.resolve(true))
       app2 = makeApp('app2')
       app2.acceptServer = sinon.stub()
-      app2.acceptServer.callsArg(1)
+      app2.acceptServer.returns(Promise.resolve(true))
       root = ap.Container.design('root', ->
         this.compose(
           '/': '/app1'

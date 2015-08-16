@@ -41,6 +41,13 @@ describe 'Base', ->
       app = new App()
       expect(app instanceof Base).to.be.true
       expect(app.constructor).to.equal(App)
+      expect(App.super_).to.equal(Base)
+      App2 = App.extend()
+      app2 = new App2()
+      expect(app2 instanceof Base).to.be.true
+      expect(app2 instanceof App).to.be.true
+      expect(app2 instanceof App2).to.be.true
+      expect(App2.super_).to.equal(App)
 
     it 'should call configurator', ->
       cfg = sinon.spy()

@@ -1,4 +1,4 @@
-process.on('uncaughtException', (e)->
-  console.trace(e)
-  process.exit(1)
-  )
+# process.on('uncaughtException', (e)->
+#   console.trace(e)
+#   process.exit(1)
+#   )

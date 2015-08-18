@@ -23,6 +23,8 @@ describe 'App', ->
       expect(app.inject).to.be.ok
       expect(app.acceptServer).to.be.ok
       expect(app.listen).to.be.ok
+      expect(app.context.env).to.equal('test')
+      expect(app.context.ENV).to.equal('test')
 
     it 'should configure namespace', (done)->
       obj =

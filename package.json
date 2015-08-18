@@ -1,6 +1,6 @@
 {
   "name": "koa-app-party",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "koa app party",
   "main": "lib/index.js",
   "scripts": {

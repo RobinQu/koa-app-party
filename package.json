@@ -1,6 +1,6 @@
 {
   "name": "koa-app-party",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "koa app party",
   "main": "lib/index.js",
   "scripts": {
@@ -10,7 +10,7 @@
   "author": "Robin Qu",
   "license": "MIT",
   "dependencies": {
-    "bluebird": "^2.9.34",
+    "bluebird": "~2.9.34",
     "catlog": "^1.0.0",
     "continuation-local-storage": "~3.1.4",
     "debug": "~2.2.0",
